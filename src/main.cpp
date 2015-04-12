@@ -18,19 +18,19 @@
 
 
 /* maps strings into a container of integer types*/
-template<class o, int total_count, int start_index, int this_count>
+template<class o, int total_counti, int total_counto, int start_index, int this_count>
 struct convert
 {
-    inline static void loop_map_strings_to_ints ( std::array<std::string, total_count> input, std::array<o, total_count>& output )
+    inline static void loop_map_strings_to_ints ( std::array<std::string, total_counti> input, std::array<o, total_counto>& output )
     {
         output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
-        convert<o, total_count, start_index, this_count - 1>::loop_map_strings_to_ints ( input, output );
+        convert<o, total_counti, total_counto, start_index, this_count - 1>::loop_map_strings_to_ints ( input, output );
     }
 
 };
 /* zero specifier */
-template<class o, int total_count, int start_index>
-struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count> input, std::array<o, total_count>& output ) {} };
+template<class o, int total_counti, int total_counto, int start_index>
+struct convert<o, total_counti, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_counti> input, std::array<o, total_counto>& output ) {} };
 
 
 template <int size>
