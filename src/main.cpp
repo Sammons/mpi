@@ -285,7 +285,7 @@ int main ( int argc, char* argv[] )
         int rec = 0;
         for ( int i = 0; i < procs; ++i )
         {
-            MPI_Recv ( &rec, 1, MPI_INT32_T, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+            MPI_Recv ( &rec, 1, MPI_INT32_T, i, TAG_STRINGSIZE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
             std::cout << "received " << rec << std::endl;
         }
 
