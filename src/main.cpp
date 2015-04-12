@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <ifstream>
+#include <fstream>
 #include <functional>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
