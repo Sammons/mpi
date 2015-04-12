@@ -45,7 +45,7 @@ template <int size>
 std::vector<image_vector<size>> read_file ( const std::string filename )
 {
     std::string line;
-    std::ifstream stream = std::ifstream ( filename );
+    std::ifstream stream( filename );
     std::vector<image_vector<size>> output_set;
     if ( !stream.is_open () )
     {
