@@ -118,7 +118,7 @@ int main ( int argc, char* argv[] )
 {
     MPI_Init ( &argc, &argv );
 
-    if ( argc < 3 )
+    if ( argc < 2 )
     {
         std::cout << "not enough args, usage mpirun <data directory> <search vector steps>" << std::endl;
         MPI_Finalize ();
