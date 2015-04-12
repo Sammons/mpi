@@ -110,11 +110,6 @@ inline int get_end_for_me ( const int& me, const int& us, const int& size )
     else return ( me + 1 )* divides_to;
 }
 
-inline std::string join_paths_by_newline ( const std::vector<std::string>& paths, const int& start, const int& end )
-{
-    std::string joined;
-    return boost::join ( std::vector<std::string> ( &paths.at ( start ), &paths.at ( start ) + end ), "\n" );
-}
 
 int main ( int argc, char* argv[] )
 {
@@ -146,7 +141,9 @@ int main ( int argc, char* argv[] )
         {
             const int my_paths_start = get_start_for_me ( i, procs, files.size () );
             const int my_paths_end = get_end_for_me ( i, procs, files.size () );
-            const std::string my_joined_paths = join_paths_by_newline ( files, my_paths_start, my_paths_end );
+            std::string my_joined_paths;
+            int j = i;
+            for ( j = 0; j < files.size (); j += procs ) my_joined_paths += files[ j ] + "\n";
             std::cout << "my files:" << i << ":  " << my_joined_paths;
             MPI_Send ( buffer, 4, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
             std::cout << "master sent initial task to " << i << std::endl;
