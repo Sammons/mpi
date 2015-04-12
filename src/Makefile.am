@@ -1,0 +1,12 @@
+AM_CPPFLAGS = \
+	$(BOOST_CPPFLAGS)
+
+AM_LDFLAGS = \
+	$(BOOST_LDFLAGS)
+
+bin_PROGRAMS = mpi
+mpi_SOURCES = main.cpp 
+
+mpi_LDADD = \
+	$(BOOST_FILESYSTEM_LIB) \
+	$(BOOST_SYSTEM_LIB)
