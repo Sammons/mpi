@@ -198,10 +198,6 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
         /* calculate distances, and insert into map*/
         const float dist = ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector );
         const int id = vectors_to_rank[ i ].image_id;
-        if ( dist == 0 )
-        {
-            std::cout << "WHAT THE CRAY Z STUFFS" << std::endl;
-        }
         const auto existing = u_set.find ( id );
         if ( existing != u_set.end () )
         {
@@ -218,10 +214,6 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     {
         rankings[ i ].image_id = iter->first;
         rankings[ i ].distance = iter->second;
-        if ( rankings[ i ].distance == 0 )
-        {
-            std::cout << "WHAT THE CRAY Z STUFFS 2" << std::endl;
-        }
         ++iter;
     }
 
