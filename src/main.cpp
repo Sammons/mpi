@@ -128,7 +128,7 @@ struct rank
     int image_id;
 
     /* for sorting */
-    inline bool operator<( const rank& b ) { return distance < b.distance; }
+    inline bool operator<( const rank& b ) const { return distance < b.distance; }
 
 };
 
