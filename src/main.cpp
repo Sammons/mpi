@@ -200,7 +200,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     return output_file_path;
 }
 
-inline void deserialize_and_merge_file ( const std::string& path, std::vector<rank>& distances, int nearest_neighbors )
+inline void deserialize_and_merge_file ( const std::string& path, std::map<int, float>& distances, int nearest_neighbors )
 {
     /* open that file thing*/
     FILE * handle = fopen ( path.c_str(), "rb" );
@@ -220,12 +220,16 @@ inline void deserialize_and_merge_file ( const std::string& path, std::vector<ra
     /* merge them into the distances*/
     for ( int i = 0; i < how_many_rankings; ++i )
     {
-        auto j = distances.rbegin();
-        if ( distances.size () < nearest_neighbors ) distances.insert ( distances.end (), rankings[ i ] );
-        else if( rankings[ i ] < *j ) *j = rankings[ i ];
+        if ( distances.find ( rankings[ i ].image_id ) != distances.end () )
+        {
+            if ( rankings[ i ].distance < distances[ rankings[ i ].image_id ] )
+                distances[ rankings[ i ].image_id ] = rankings[ i ].distance;
+        }
+        else
+        {
+            distances[ rankings[ i ].image_id ] = rankings[ i ].distance;
+        }
     }
-    /* resort the distances */
-    std::sort ( distances.begin (), distances.end () );
 
     fclose ( handle );
     /* clean up after ourselves */
@@ -344,18 +348,35 @@ int main ( int argc, char* argv[] )
 
         /* perform a swell & cut strategy 
         swell up big, then we cut out our nearest neighbors*/
-        std::vector<rank> distances;
+        std::map<int, float> distances;
         for ( auto presult_path : partial_result_files )
         {
-            /* merge the file into distances */
+            /* merge the file into distances - deduplication is completed */
             deserialize_and_merge_file ( presult_path, distances, nearest_neighbors );
         }
 
+        std::vector<rank> result;
+
+        /* convert our map back into rankings, now we have no duplicates and just need to sort*/
+        for ( auto each = distances.begin ();
+              each != distances.end (); ++each )
+        {
+            rank a;
+            a.image_id = each->first;
+            a.distance = each->second;
+        }
+
+        /* sort result */
+        std::sort ( result.begin (), result.end () );
+
+        /* truncate resutl to nearest neighbors */
+        result.resize ( nearest_neighbors );
+
         /* print report */
         std::cout << "NEAREST NEIGHBORS" << std::endl;
-        for ( int i = 0; i < distances.size (); ++i )
+        for ( int i = 0; i < result.size (); ++i )
         {
-            std::cout << i << "\t" << distances[ i ].image_id << ": " << distances[ i ].distance << std::endl;
+            std::cout << i << "\t" << result[ i ].image_id << ": " << result[ i ].distance << std::endl;
         }
         std::cout << "complete" << std::endl;
     }
