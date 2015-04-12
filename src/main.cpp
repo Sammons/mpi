@@ -84,7 +84,7 @@ inline std::vector<std::string> get_file_names_in_dir ( std::string dirname )
     {
         if ( boost::filesystem::is_regular_file ( *dir ) )
         {
-            file_names.push_back ( boost::filesystem::absolute( dir->path() ).generic_string() );
+            file_names.push_back ( boost::filesystem::complete( dir->path() ).string() );
         }
     }
     return file_names;
