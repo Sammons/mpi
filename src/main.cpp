@@ -42,7 +42,7 @@ struct image_vector
 };
 
 template <int size>
-std::vector<image_vector<size>> read_file ( const std::string filename )
+std::vector<image_vector<size>> read_file (std::string filename )
 {
     std::string line;
     std::ifstream stream = std::ifstream ( filename );
