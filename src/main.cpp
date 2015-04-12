@@ -30,7 +30,7 @@ struct convert
 };
 /* zero specifier */
 template<class o, int total_count, int start_index>
-struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output ) {} };
+struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count> input, std::array<o, total_count>& output ) {} };
 
 
 template <int size>
