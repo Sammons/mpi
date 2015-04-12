@@ -214,7 +214,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
         }
     }
 
-    int output_size = ( nearest_neighbors > rankings.size () ? rankings.size () : nearest_neighbors );
+    int output_size = rankings.size ();
 
     /* breadcrumb for deserialization, how many there are */
     fwrite ( &output_size, sizeof ( int ), 1, handle );
