@@ -23,7 +23,7 @@ struct convert
     inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output )
     {
         output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
-        convert<o, total_count, start_index, this_count - 1>.loop_map_strings_to_ints ( input, output );
+        convert<o, total_count, start_index, this_count - 1>::loop_map_strings_to_ints ( input, output );
     }
 
 };
