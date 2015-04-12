@@ -261,7 +261,7 @@ inline void deserialize_and_merge_file ( const std::string& path, std::map<int, 
 
     fclose ( handle );
     /* clean up after ourselves */
-    //boost::filesystem::remove ( path );
+    boost::filesystem::remove ( path );
 }
 
 int main ( int argc, char* argv[] )
@@ -274,8 +274,8 @@ int main ( int argc, char* argv[] )
         MPI_Finalize ();
         return 0;
     }
-   // constexpr int vector_sizes = 128;
-    const auto search_vector = get_search_image_vector<128> ( atoi ( argv[ 2 ] ) );
+    constexpr int vector_sizes = 128;
+    const auto search_vector = get_search_image_vector<vector_sizes> ( atoi ( argv[ 2 ] ) );
     const int nearest_neighbors = atoi ( argv[ 3 ] );
     /* fun information about who "I" am here*/
     char hostname[ 255 ]; int len;
@@ -371,15 +371,12 @@ int main ( int argc, char* argv[] )
             std::cout << "received " << rec << " more parts" <<std::endl;
         }
 
-        /* this may not be necessary, but it ensures that we wait for everything before continuing - its a double check */
-        //MPI_Barrier ( MPI_COMM_WORLD );
 
-        /* perform a swell & cut strategy 
-        swell up big, then we cut out our nearest neighbors*/
+        /* dedup + extract data */
         std::map<int, float> distances;
         for ( auto presult_path : partial_result_files )
         {
-            /* merge the file into distances - deduplication is completed */
+            /* merge the file into distances */
             deserialize_and_merge_file ( presult_path, distances, nearest_neighbors );
         }
 
@@ -392,13 +389,15 @@ int main ( int argc, char* argv[] )
             rank a;
             a.image_id = each->first;
             a.distance = each->second;
+            if ( a.distance == 0 )
+                std::cout << " WHOAH THATS CRAZY " << std::endl;
             result.push_back ( a );
         }
 
         /* sort result */
         std::sort ( result.begin (), result.end () );
 
-        /* truncate resutl to nearest neighbors */
+        /* truncate result to nearest neighbors */
         result.resize ( nearest_neighbors );
 
         /* print report */
