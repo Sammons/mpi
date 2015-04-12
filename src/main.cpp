@@ -200,7 +200,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
         const auto existing = u_set.find ( vectors_to_rank[ i ].image_id );
         if ( existing != u_set.end () )
         {
-            if ( *existing > dist ) *existing = dist;
+            if ( existing->second > dist ) existing->second = dist;
         }
         u_set[ vectors_to_rank[ i ].image_id ] = dist;
     }
