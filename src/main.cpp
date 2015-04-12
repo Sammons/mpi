@@ -17,29 +17,28 @@
 
 
 /* maps strings into a container of integer types*/
-// template<class o, int total_count, int start_index, int this_count>
-// struct convert
-// {
-//     inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output )
-//     {
-//         output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
-//         convert<o, total_count, start_index, this_count - 1>.loop_map_strings_to_ints ( input, output );
-//     }
+template<class o, int total_count, int start_index, int this_count>
+struct convert
+{
+    inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output )
+    {
+        output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
+        convert<o, total_count, start_index, this_count - 1>.loop_map_strings_to_ints ( input, output );
+    }
 
-// };
-// /* zero specifier */
-// template<class o, int total_count, int start_index>
-// struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output ) {} };
+};
+/* zero specifier */
+template<class o, int total_count, int start_index>
+struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output ) {} };
 
 
-// template <int size>
-// struct image_vector
-// {
-//     /* frankly, we don't need to track anything else in this lab */
-//     int image_id;
-//     std::array<short, size> data;
-
-// };
+template <int size>
+struct image_vector
+{
+    /* frankly, we don't need to track anything else in this lab */
+    int image_id;
+    std::array<short, size> data;
+};
 
 // template <int size>
 // std::vector<image_vector<size>> read_file ( const std::string filename )
