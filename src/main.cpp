@@ -160,13 +160,13 @@ int main ( int argc, char* argv[] )
         int package_size = 0;
         MPI_Recv ( &package_size, 1, MPI_INT32_T, 0, TAG_STRINGSIZE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::string receive_buffer ( package_size, '\0' );
-        MPI_Recv ( &receive_buffer.data, package_size, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        MPI_Recv ( receive_buffer.data, package_size, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::cout << "child " << id << " receiving task" << std::endl;
         std::cout << "received:\n" << receive_buffer << std::endl;
         std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
         /* perform work */
         /* for now, just testing, does nothing */
-        MPI_Send ( package_size, 1, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        MPI_Send ( &package_size, 1, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
         std::cout << "child " << id << " sending back result" << std::endl;
     }
 
