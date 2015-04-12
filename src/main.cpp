@@ -191,27 +191,26 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     smaller pieces */
     const std::vector<image_vector<size>> vectors_to_rank = read_file<size> ( filename );
     const int num_rankings = vectors_to_rank.size ();
-    std::vector<rank> rankings;
-    std::map<float, std::set<int>> rank_set;
+    std::vector<rank> rankings(num_rankings);
+    std::map<int, float> u_set;
     for (int i = 0; i < num_rankings; ++i )
     {
-        /* calculate distances, and in a unique fashion insert into a map */
-        rank_set[ 
-            ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector )
-        ].emplace ( vectors_to_rank[ i ].image_id );
+        /* calculate distances, and insert into map*/
+        const float dist = ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector );
+        const auto existing = u_set.find ( vectors_to_rank[ i ].image_id );
+        if ( existing != u_set.end () )
+        {
+            if ( *existing > dist ) *existing = dist;
+        }
+        u_set[ vectors_to_rank[ i ].image_id ] = dist;
     }
 
-    int j = 0;
-    for (auto iter = rank_set.begin (); iter != rank_set.end (); ++iter )
+    auto iter = u_set.begin ();
+    for (register int i = 0; i < num_rankings; ++i )
     {
-        for ( auto inner_iter = iter->second.begin (); inner_iter != iter->second.end (); ++inner_iter )
-        {
-            rank r;
-            r.distance = iter->first;
-            r.image_id = *inner_iter;
-            rankings.push_back ( r );
-            ++j;
-        }
+        rankings[ i ].image_id = iter->first;
+        rankings[ i ].distance = iter->second;
+        ++iter;
     }
 
     int output_size = rankings.size ();
