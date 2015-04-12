@@ -117,7 +117,7 @@ image_vector<size> get_search_image_vector ( int which )
     image_vector<size> v { 0 };
     v.image_id = 0;
     for ( int i = 0; i < size; ++i )
-        v.data[ i ] = rand % SHRT_MAX;
+        v.data[ i ] = rand() % SHRT_MAX;
     return v;
 }
 
