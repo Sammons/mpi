@@ -16,29 +16,30 @@
 #define TAG_COMPLETE 1
 
 
-
-/* maps strings into a container of integer types*/
-template<class o, int total_counti, int total_counto, int start_index, int this_count>
-struct convert
-{
-    inline static void loop_map_strings_to_ints ( std::array<std::string, total_counti> input, std::array<o, total_counto>& output )
-    {
-        output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
-        convert<o, total_counti, total_counto, start_index, this_count - 1>::loop_map_strings_to_ints ( input, output );
-    }
-
-};
-/* zero specifier */
-template<class o, int total_counti, int total_counto, int start_index>
-struct convert<o, total_counti, total_counto, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_counti> input, std::array<o, total_counto>& output ) {} };
-
-
 template <int size>
 struct image_vector
 {
     /* frankly, we don't need to track anything else in this lab */
     int image_id;
-    std::array<short, size> data;
+    std::array<int, size> data;
+};
+
+
+
+template<class t, int size, int start, int cur>
+struct converter {
+    static inline void map_tokens_to_image_vector ( const std::vector<std::string>& tokens, image_vector<size>& v )
+    {
+        v.data[ cur - 1 ] = static_cast< t >( atoi ( tokens[ start + ( cur - 1 ) ].c_str () ) );
+        converter<t, size, start, cur - 1>::map_tokens_to_image_vector ( tokens, v );
+    }
+};
+
+template<class t, int size, int start>
+struct converter<t, size, start, 0>
+{
+    static inline void map_tokens_to_image_vector ( const std::vector<std::string>& tokens, image_vector<size>& v )
+    {}
 };
 
 template <int size>
@@ -57,13 +58,15 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
         getline ( stream, line );
         
         /* shatter the line */
-        std::array<std::string, size + 7 /* meta data */ + 4 /* empty spaces */> tokens;
+        std::vector<std::string> tokens ( size + 7 /* meta data */ + 4 /* empty spaces */, "" );
         boost::split ( tokens, line, boost::is_any_of ( ",\"{}" ) );
 
         /* populate vector */
         image_vector<size> next_vector;
-        convert<int, size + 7 + 4, size, 9, size>::loop_map_strings_to_ints (tokens, next_vector.data);
-        next_vector.image_id = atoi( tokens[ 0 ] );
+
+        //index_of_first_element_in_128_element_vector = 9;
+        converter<int, size, 9, size>::map_tokens_to_image_vector ( tokens, next_vector );
+        next_vector.image_id = atoi( tokens[ 0 ].c_str() );
 
         /* save the vector */
         output_set.push_back ( next_vector );
