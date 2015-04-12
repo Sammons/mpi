@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <cstdlib>
+#include <cstdio>
 #include <chrono>
 #include <thread>
 #include <array>
@@ -125,32 +126,80 @@ struct rank
 {
     float distance;
     int image_id;
+
+    /* for sorting */
+    inline bool operator<( const rank& b ) { return distance < b.distance; }
+
 };
 
 inline std::string generate_output_file_name ( const std::string& seed, int tries = 0 )
 {
-    const std::string output = seed + "_output_" + std::to_string(tries);
+    const std::string output = boost::filesystem::basename(seed) + "_output_" + std::to_string(tries);
     if ( boost::filesystem::exists ( output ) )
         return generate_output_file_name ( seed, tries + 1 );
     return output;
 }
 
+template<int size, int c>
+struct ranker
+{
+    inline static int sum_distances ( const image_vector<size>& a, const image_vector<size>& b )
+    {
+        return std::abs<int>( a[ c ] - b[ c ] ) / ranker<size, c-1>::sum_distances ( a, b );
+    }
+    inline static float rank_vectors ( const image_vector<size>& a, const image_vector<size>& b )
+    {
+        return static_cast< float >( ranker<size, c>::sum_distances ( a, b ) ) / static_cast< float >( size );
+    }
+};
+template<int size>
+struct ranker<size, 0>
+{
+    inline static int sum_distances ( const image_vector<size>& a, const image_vector<size>& b )
+    {
+        return std::abs ( a[ c ] - b[ c ] );
+    }
+};
+
 /* stores results in a file, only returns new filename */
 template<int size>
-std::string rank_file ( const std::string& filename, const image_vector<size>& search_vector )
+std::string rank_file ( const std::string& filename, const image_vector<size>& search_vector, const int& nearest_neighbors )
 {
     /* determine what the path we will write to is */
     const std::string output_file_path = generate_output_file_name ( filename );
 
     /* create the file, in case we do not have permissions - we want to fail fast*/
-    auto file = boost::filesystem::open ( output_file_path );
+    FILE * handle = fopen ( output_file_path.c_str (), "w+" );
+    if ( handle == NULL )
+    {
+        std::cout << "incapable of opening file in this location " + output_file_path << std::endl;
+        return "";
+    }
 
     /* SERIOUS assumption here!!! that we are delegating properly, e.g. the file can fit into memory 
     but this really isn't that serious, considering that we can always just split the files up into
     smaller pieces */
-    auto vectors_to_rank = read_file ( filename );
+    const std::vector<image_vector<size>> vectors_to_rank = read_file ( filename );
+    const int num_rankings = vectors_to_rank.size ();
+    std::vector<rank> rankings ( num_rankings );
+    for ( register int i = 0; i < num_rankings; ++i )
+    {
+        /* calculate distances */
+        rankings[ i ].distance = ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector );
+        rankings[ i ].image_id = vectors_to_rank[ i ].image_id;
+    }
 
-    boost::filesystem::close ( file );
+    /* breadcrumb for deserialization, how many there are */
+    fwrite ( &nearest_neighbors, sizeof ( int ), 1, handle );
+
+    /* sort */
+    std::sort ( rankings.begin (), rankings.end () );
+
+    /* serialize results */
+    fwrite ( &rankings[ 0 ], sizeof ( rank ), nearest_neighbors, handle );
+
+    fclose ( handle );
+    return output_file_path;
 }
 
 
@@ -158,14 +207,15 @@ int main ( int argc, char* argv[] )
 {
     MPI_Init ( &argc, &argv );
 
-    if ( argc < 3 )
+    if ( argc < 4 )
     {
-        std::cout << "not enough args, usage mpirun <data directory> <search vector steps>" << std::endl;
+        std::cout << "not enough args, usage mpirun <data directory> <search vector steps> <nearest neighbors>" << std::endl;
         MPI_Finalize ();
         return 0;
     }
    // constexpr int vector_sizes = 128;
     const auto search_vector = get_search_image_vector<128> ( atoi ( argv[ 2 ] ) );
+    const int nearest_neighbors = atoi ( argv[ 3 ] );
     /* fun information about who "I" am here*/
     char hostname[ 255 ]; int len;
     int id, procs;
@@ -211,16 +261,20 @@ int main ( int argc, char* argv[] )
         std::vector<std::string> file_paths;
         boost::split ( file_paths, receive_buffer, boost::is_any_of ( "\n" ) );
 
+        /*files we are going to send back to the master*/
+        std::vector<std::string> output_file_paths;
+
         /* process each file independently */
         for ( auto path : file_paths )
         {
-
+            output_file_paths.push_back ( rank_file ( path, search_vector, nearest_neighbors) );
         }
+        package_size = output_file_paths.size ();
 
-        std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
-        /* perform work */
-        /* for now, just testing, does nothing */
-        MPI_Send ( &package_size, 1, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        /* send back number of file names included */
+        MPI_Send ( &package_size, 1, MPI_INT32_T, 0, TAG_STRINGSIZE, MPI_COMM_WORLD );
+
+        /* send back output file names */
         std::cout << "child " << id << " sending back result" << std::endl;
     }
 
