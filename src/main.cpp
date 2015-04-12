@@ -93,8 +93,6 @@ struct image_vector
     std::array<int, size> data;
 };
 
-
-
 template<class t, int size, int start, int cur>
 struct converter {
     static inline void map_tokens_to_image_vector ( const std::vector<std::string>& tokens, image_vector<size>& v )
@@ -186,17 +184,7 @@ inline std::string generate_output_file_name ( const std::string& seed, int trie
         return generate_output_file_name ( seed, tries + 1 );
     return output;
 }
-template<int vectLen>
-inline float manhattanDissimilarity ( const std::array<int, vectLen>& a, const std::array<int, vectLen>& b )
-{
-    int dis = 0;
-    for ( int i = 0; i < vectLen; ++i )
-    {
-        // std::cout << dis << "m\n";
-        dis += abs ( a[ i ] - b[ i ] );
-    }
-    return ( float )dis / ( float )vectLen;
-}
+
 template<int size, int c>
 struct ranker
 {
@@ -348,13 +336,9 @@ int main ( int argc, char* argv[] )
             for (int j = i; j < files.size (); j += procs ) 
                 my_joined_paths += files[ j ] + "\n";
 
-            std::cout << "files for:" << i << ":\n" << my_joined_paths;
-            
             int package_size = my_joined_paths.size ();
             MPI_Send ( &package_size, 1, MPI_INT32_T, i, TAG_STRINGSIZE, MPI_COMM_WORLD );
             MPI_Send ( &my_joined_paths[0], package_size, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
-
-            std::cout << "master sent initial task to " << i << std::endl;
         }
     }
 
@@ -391,7 +375,7 @@ int main ( int argc, char* argv[] )
         /* send back output file names */
         MPI_Send ( &output_buffer[0], package_size, MPI_CHAR, 0, TAG_COMPLETE, MPI_COMM_WORLD );
         
-        std::cout << "child " << id << " sending back result" << std::endl;
+        std::cout << "child " << id << " completed" << std::endl;
     }
 
     /* wait for everyone to turn in their work */
@@ -416,10 +400,8 @@ int main ( int argc, char* argv[] )
             
             /* append them to the master list */
             partial_result_files.insert ( partial_result_files.end (), some_partial_result_files.begin (), some_partial_result_files.end () );
-            
-            std::cout << "received " << rec << " more parts" <<std::endl;
         }
-
+        std::cout << "master has finished receiving all partial results" << std::endl;
 
         /* dedup + extract data */
         std::map<int, float> distances;
