@@ -190,7 +190,8 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
         ].emplace ( vectors_to_rank[ i ].image_id );
     }
 
-    for ( int j = 0, auto iter = rank_set.begin (); iter != rank_set.end (); ++iter )
+    int j = 0
+    for (auto iter = rank_set.begin (); iter != rank_set.end (); ++iter )
     {
         for ( auto inner_iter = iter->second.begin (); inner_iter != iter->second.end (); ++inner_iter )
         {
