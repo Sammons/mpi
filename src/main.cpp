@@ -340,7 +340,7 @@ int main ( int argc, char* argv[] )
         }
 
         /* this may not be necessary, but it ensures that we wait for everything before continuing - its a double check */
-        MPI_Barrier ( MPI_COMM_WORLD );
+        //MPI_Barrier ( MPI_COMM_WORLD );
 
         /* perform a swell & cut strategy 
         swell up big, then we cut out our nearest neighbors*/
