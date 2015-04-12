@@ -87,6 +87,7 @@ inline std::vector<std::string> get_file_names_in_dir ( std::string dirname )
             std::cout << boost::filesystem::complete ( dir->path () ).string () << std::endl;
             file_names.push_back ( boost::filesystem::complete( dir->path() ).string() );
         }
+        dir++;
     }
     return file_names;
 }
