@@ -53,10 +53,8 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
         std::cout << "unable to read file " << filename << std::endl;
         return output_set;
     }
-    while ( stream.good () )
+    while ( std::getline ( stream, line ) )
     {
-        getline ( stream, line );
-        
         /* shatter the line */
         std::vector<std::string> tokens ( size + 7 /* meta data */ + 4 /* empty spaces */, "" );
         boost::split ( tokens, line, boost::is_any_of ( ",\"{}" ) );
@@ -78,7 +76,7 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
 int main ( int argc, char* argv[] )
 {
 
-    auto vectors = read_file<128>("/cluster/content/hpc/dev_data/data_aa");
+    auto vectors = read_file<128>("data_test");
     std::cout << vectors[0].image_id << " image id" << std::endl;
     for (int i = 0; i < 128; i++)
         std::cout << "\t" << vectors[0].data[i] << std::endl;
