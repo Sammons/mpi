@@ -197,6 +197,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
         {
             rank r;
             r.distance = iter->first;
+            std::cout << "DIST" << r.distance << std::endl;;
             r.image_id = *inner_iter;
             rankings.push_back ( r );
             ++j;
