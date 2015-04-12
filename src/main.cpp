@@ -141,7 +141,17 @@ inline std::string generate_output_file_name ( const std::string& seed, int trie
         return generate_output_file_name ( seed, tries + 1 );
     return output;
 }
-
+template<int vectLen>
+inline float manhattanDissimilarity ( const std::array<int, vectLen>& a, const std::array<int, vectLen>& b )
+{
+    int dis = 0;
+    for ( int i = 0; i < vectLen; ++i )
+    {
+        // std::cout << dis << "m\n";
+        dis += abs ( a[ i ] - b[ i ] );
+    }
+    return ( float )dis / ( float )vectLen;
+}
 template<int size, int c>
 struct ranker
 {
@@ -151,9 +161,10 @@ struct ranker
     }
     inline static float rank_vectors ( const image_vector<size>& a, const image_vector<size>& b )
     {
-        return ( float )( ranker<size, c>::sum_distances ( a, b ) ) / ( float )( size );
+        return manhattanDissimilarity<size> ( a.data, b.data );
     }
 };
+
 template<int size>
 struct ranker<size, 0>
 {
