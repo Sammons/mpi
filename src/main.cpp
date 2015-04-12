@@ -17,6 +17,7 @@
 
 #define TAG_FILENAME 0
 #define TAG_COMPLETE 1
+#define TAG_STRINGSIZE 2
 #define MAX_FILE_NAME_CHARS 4096
 
 template <int size>
@@ -145,23 +146,27 @@ int main ( int argc, char* argv[] )
                 my_joined_paths += files[ j ] + "\n";
 
             std::cout << "files for:" << i << ":\n" << my_joined_paths;
-            if ( my_joined_paths.size () > MAX_FILE_NAME_CHARS )
-                throw "too many files being delegated!!!!";
-            MPI_Send ( &my_joined_paths[0], my_joined_paths.size(), MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
+            
+            int package_size = my_joined_paths.size ();
+            MPI_Send ( &package_size, 1, MPI_INT32_T, i, TAG_STRINGSIZE, MPI_COMM_WORLD );
+            MPI_Send ( &my_joined_paths[0], package_size, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
+
             std::cout << "master sent initial task to " << i << std::endl;
         }
     }
 
     {
         /* child receives */
-        char tmp_buffer[ MAX_FILE_NAME_CHARS ] { 0 };
-        MPI_Recv ( tmp_buffer, MAX_FILE_NAME_CHARS, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        int package_size = 0;
+        MPI_Recv ( &package_size, 1, MPI_INT32_T, 0, TAG_STRINGSIZE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        std::string receive_buffer ( package_size, '\0' );
+        MPI_Recv ( &receive_buffer.data, package_size, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::cout << "child " << id << " receiving task" << std::endl;
-        std::cout << "received:\n" << std::string ( tmp_buffer ) << std::endl;
+        std::cout << "received:\n" << receive_buffer << std::endl;
         std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
         /* perform work */
         /* for now, just testing, does nothing */
-        MPI_Send ( tmp_buffer, MAX_FILE_NAME_CHARS, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        MPI_Send ( package_size, 1, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
         std::cout << "child " << id << " sending back result" << std::endl;
     }
 
@@ -171,19 +176,15 @@ int main ( int argc, char* argv[] )
     /* gather */
     if ( id == 0 )
     {
-        int * rec_buffer = ( int* )malloc ( 4 * procs * sizeof ( int ) );
+        int rec = 0;
         for ( int i = 0; i < procs; ++i )
         {
-            MPI_Recv ( rec_buffer + ( 4 * i ), 4, MPI_INT32_T, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+            MPI_Recv ( &rec, 1, MPI_INT32_T, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+            std::cout << "received " << rec << std::endl;
         }
 
         /* print report */
-        std::cout << "printing results:" << std::endl;
-        for ( int i = 0; i < procs * 4; ++i )
-            std::cout << "\t" << rec_buffer[ i ] << std::endl;
-        free ( rec_buffer );
         std::cout << "complete" << std::endl;
-
     }
 
     MPI_Finalize ();
