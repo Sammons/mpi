@@ -352,6 +352,11 @@ int main ( int argc, char* argv[] )
         }
 
         /* print report */
+        std::cout << "NEAREST NEIGHBORS" << std::endl;
+        for ( int i = 0; i < distances.size (); ++i )
+        {
+            std::cout << i << "\t" << distances[ i ].image_id << ": " << distances[ i ].distance << std::endl;
+        }
         std::cout << "complete" << std::endl;
     }
 
