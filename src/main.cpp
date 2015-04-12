@@ -145,7 +145,7 @@ struct ranker
 {
     inline static int sum_distances ( const image_vector<size>& a, const image_vector<size>& b )
     {
-        return std::abs<int>( a[ c ] - b[ c ] ) / ranker<size, c-1>::sum_distances ( a, b );
+        return std::abs<int>( a.data[ c-1 ] - b.data[ c-1 ] ) / ranker<size, c-1>::sum_distances ( a, b );
     }
     inline static float rank_vectors ( const image_vector<size>& a, const image_vector<size>& b )
     {
@@ -155,10 +155,7 @@ struct ranker
 template<int size>
 struct ranker<size, 0>
 {
-    inline static int sum_distances ( const image_vector<size>& a, const image_vector<size>& b )
-    {
-        return std::abs ( a[ c ] - b[ c ] );
-    }
+    inline static int sum_distances ( const image_vector<size>& a, const image_vector<size>& b ){}
 };
 
 /* stores results in a file, only returns new filename */
