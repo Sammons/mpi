@@ -249,7 +249,6 @@ inline void deserialize_and_merge_file ( const std::string& path, std::map<int, 
     /* merge them into the distances*/
     for ( int i = 0; i < how_many_rankings; ++i )
     {
-        std::cout << "read in " << rankings[ i ].image_id << " :: " << rankings[ i ].distance << std::endl;
         if ( distances.find ( rankings[ i ].image_id ) != distances.end () )
         {
             if ( rankings[ i ].distance < distances[ rankings[ i ].image_id ] )
@@ -394,6 +393,7 @@ int main ( int argc, char* argv[] )
             rank a;
             a.image_id = each->first;
             a.distance = each->second;
+            result.push_back ( a );
         }
 
         /* sort result */
