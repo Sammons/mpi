@@ -110,19 +110,29 @@ inline int get_end_for_me ( const int& me, const int& us, const int& size )
     if ( me == us - 1 ) return size;
     else return ( me + 1 )* divides_to;
 }
-
+template<int size>
+image_vector<size> get_search_image_vector ( int which )
+{
+    srand ( which );
+    image_vector<size> v { 0 };
+    v.image_id = 0;
+    for ( int i = 0; i < size; ++i )
+        v.data[ i ] = rand % SHRT_MAX;
+    return v;
+}
 
 int main ( int argc, char* argv[] )
 {
     MPI_Init ( &argc, &argv );
 
-    if ( argc < 2 )
+    if ( argc < 3 )
     {
         std::cout << "not enough args, usage mpirun <data directory> <search vector steps>" << std::endl;
         MPI_Finalize ();
         return 0;
     }
-
+    constexpr int vector_sizes = 128;
+    const auto search_vector = get_search_image_vector<vector_sizes> ( atoi ( argv[ 2 ] ) );
     /* fun information about who "I" am here*/
     char hostname[ 255 ]; int len;
     int id, procs;
@@ -163,6 +173,17 @@ int main ( int argc, char* argv[] )
         MPI_Recv ( &receive_buffer[0], package_size, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::cout << "child " << id << " receiving task" << std::endl;
         std::cout << "received:\n" << receive_buffer << std::endl;
+
+        /* split apart file names*/
+        std::vector<std::string> file_paths;
+        boost::split ( file_paths, receive_buffer, boost::is_any_of ( "\n" ) );
+
+        /* process each file independently */
+        for ( auto path : file_paths )
+        {
+
+        }
+
         std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
         /* perform work */
         /* for now, just testing, does nothing */
