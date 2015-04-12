@@ -176,7 +176,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     /* SERIOUS assumption here!!! that we are delegating properly, e.g. the file can fit into memory 
     but this really isn't that serious, considering that we can always just split the files up into
     smaller pieces */
-    const std::vector<image_vector<size>> vectors_to_rank = read_file ( filename );
+    const std::vector<image_vector<size>> vectors_to_rank = read_file<size> ( filename );
     const int num_rankings = vectors_to_rank.size ();
     std::vector<rank> rankings ( num_rankings );
     for ( register int i = 0; i < num_rankings; ++i )
