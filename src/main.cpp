@@ -214,6 +214,10 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     {
         rankings[ i ].image_id = iter->first;
         rankings[ i ].distance = iter->second;
+        if ( rankings[ i ].distance == 0 )
+        {
+            std::cout << "WHAT THE CRAY Z STUFFS 2" << std::endl;
+        }
         ++iter;
     }
 
