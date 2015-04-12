@@ -62,7 +62,7 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
 
         /* populate vector */
         image_vector<size> next_vector;
-        convert<int, size, 9, size>::loop_map_strings_to_ints (tokens, next_vector.data);
+        convert<int, size + 7 + 4, size, 9, size>::loop_map_strings_to_ints (tokens, next_vector.data);
         next_vector.image_id = atoi( tokens[ 0 ] );
 
         /* save the vector */
