@@ -10,9 +10,12 @@
 #include <functional>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/filesystem.hpp>
 
 
-#define TAG_INITIAL_TASK 0
+#define TAG_FILENAME 0
 #define TAG_COMPLETE 1
 
 
@@ -43,7 +46,7 @@ struct converter<t, size, start, 0>
 };
 
 template <int size>
-std::vector<image_vector<size>> read_file ( const std::string filename )
+inline std::vector<image_vector<size>> read_file ( const std::string filename )
 {
     std::string line;
     std::ifstream stream( filename );
@@ -73,71 +76,116 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
     return output_set;
 }
 
+inline std::vector<std::string> get_file_names_in_dir ( std::string dirname )
+{
+    boost::filesystem::recursive_directory_iterator dir(dirname), end;
+    std::vector<std::string> file_names;
+    while ( dir != end )
+    {
+        if ( boost::filesystem::is_regular_file ( *dir ) )
+        {
+            file_names.push_back ( boost::filesystem::absolute( dir->path() ).generic_string() );
+        }
+    }
+    return file_names;
+}
+
+inline int get_start_for_me ( const int& me, const int& us, const int& size )
+{
+    const int divides_to = size / us;
+    if ( divides_to == 0 ) return 0;
+
+    return me * divides_to;
+}
+
+inline int get_end_for_me ( const int& me, const int& us, const int& size )
+{
+    const int divides_to = size / us;
+    if ( divides_to == 0 && me != 0) return 0;
+    else return size;
+
+    if ( me == us - 1 ) return size;
+    else return ( me + 1 )* divides_to;
+}
+
+inline std::string join_paths_by_newline ( const std::vector<std::string>& paths, const int& start, const int& end )
+{
+    std::string joined;
+    return boost::join ( std::vector<std::string> ( &paths.at ( start ), &paths.at ( start ) + end ), "\n" );
+}
+
 int main ( int argc, char* argv[] )
 {
+    MPI_Init ( &argc, &argv );
 
-    auto vectors = read_file<128>("data_test");
-    std::cout << vectors[0].image_id << " image id" << std::endl;
-    for (int i = 0; i < 128; i++)
-        std::cout << "\t" << vectors[0].data[i] << std::endl;
+    if ( argc < 3 )
+    {
+        std::cout << "not enough args, usage mpirun <data directory> <search vector steps>" << std::endl;
+        return 0;
+    }
 
-    //MPI_Init ( &argc, &argv );
+    /* fun information about who "I" am here*/
+    char hostname[ 255 ]; int len;
+    int id, procs;
+    MPI_Comm_rank ( MPI_COMM_WORLD, &id );
+    MPI_Comm_size ( MPI_COMM_WORLD, &procs );
+    MPI_Get_processor_name ( hostname, &len );
 
-    ///* fun information about who "I" am here*/
-    //char hostname[ 255 ]; int len;
-    //int id, procs;
-    //MPI_Comm_rank ( MPI_COMM_WORLD, &id );
-    //MPI_Comm_size ( MPI_COMM_WORLD, &procs );
-    //MPI_Get_processor_name ( hostname, &len );
+    /* dispatch to everyone, including self*/
+    if ( id == 0 )
+    {
+        /* get files to be delegated */
+        auto files = get_file_names_in_dir ( argv[ 2 ] );
 
-    ///* dispatch to everyone, including self*/
-    //if ( id == 0 )
-    //{
-    //    int buffer[] = { 1, 2, 3, 4 };
-    //    std::cout << "master issuing broadcast" << std::endl;
-    //    for ( int i = 0; i < procs; ++i )
-    //    {
-    //        MPI_Send ( buffer, 4, MPI_INT32_T, i, TAG_INITIAL_TASK, MPI_COMM_WORLD );
-    //        std::cout << "master sent initial task to " << i << std::endl;
-    //    }
-    //}
+        int buffer[] = { 1, 2, 3, 4 };
+        std::cout << "master issuing broadcast" << std::endl;
+        for ( int i = 0; i < procs; ++i )
+        {
+            const int my_paths_start = get_start_for_me ( i, procs, files.size () );
+            const int my_paths_end = get_end_for_me ( i, procs, files.size () );
+            const std::string my_joined_paths = join_paths_by_newline ( files, my_paths_start, my_paths_end );
+            std::cout << "my files:" << i << ":  " << my_joined_paths;
+            //MPI_Send ( buffer, 4, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
+            std::cout << "master sent initial task to " << i << std::endl;
+        }
+    }
 
-    //{
-    //    /* child receives */
-    //    int * local_receive_buffer = ( int* )malloc ( 4 * sizeof ( int ) );
-    //    MPI_Recv ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_INITIAL_TASK, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-    //    std::cout << "child " << id << " receiving task" << std::endl;
+    {
+        /* child receives */
+        int * local_receive_buffer = ( int* )malloc ( 4 * sizeof ( int ) );
+        MPI_Recv ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        std::cout << "child " << id << " receiving task" << std::endl;
 
-    //    std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
-    //    /* perform work */
-    //    /* for now, just testing, does nothing */
-    //    MPI_Send ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
-    //    std::cout << "child " << id << " sending back result" << std::endl;
-    //    /* child cleanup */
-    //    free ( local_receive_buffer );
-    //}
+        std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
+        /* perform work */
+        /* for now, just testing, does nothing */
+        MPI_Send ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        std::cout << "child " << id << " sending back result" << std::endl;
+        /* child cleanup */
+        free ( local_receive_buffer );
+    }
 
-    ///* wait for everyone to turn in their work */
-    //MPI_Barrier ( MPI_COMM_WORLD );
+    /* wait for everyone to turn in their work */
+    MPI_Barrier ( MPI_COMM_WORLD );
 
-    ///* gather */
-    //if ( id == 0 )
-    //{
-    //    int * rec_buffer = ( int* )malloc ( 4 * procs * sizeof ( int ) );
-    //    for ( int i = 0; i < procs; ++i )
-    //    {
-    //        MPI_Recv ( rec_buffer + ( 4 * i ), 4, MPI_INT32_T, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-    //    }
+    /* gather */
+    if ( id == 0 )
+    {
+        int * rec_buffer = ( int* )malloc ( 4 * procs * sizeof ( int ) );
+        for ( int i = 0; i < procs; ++i )
+        {
+            MPI_Recv ( rec_buffer + ( 4 * i ), 4, MPI_INT32_T, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        }
 
-    //    /* print report */
-    //    std::cout << "printing results:" << std::endl;
-    //    for ( int i = 0; i < procs * 4; ++i )
-    //        std::cout << "\t" << rec_buffer[ i ] << std::endl;
-    //    free ( rec_buffer );
-    //    std::cout << "complete" << std::endl;
+        /* print report */
+        std::cout << "printing results:" << std::endl;
+        for ( int i = 0; i < procs * 4; ++i )
+            std::cout << "\t" << rec_buffer[ i ] << std::endl;
+        free ( rec_buffer );
+        std::cout << "complete" << std::endl;
 
-    //}
+    }
 
-    //MPI_Finalize ();
+    MPI_Finalize ();
     return 0;
 }
