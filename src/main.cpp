@@ -5,6 +5,7 @@
 #include <thread>
 #include <array>
 #include <vector>
+#include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -166,7 +167,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     const std::string output_file_path = generate_output_file_name ( filename );
 
     /* create the file, in case we do not have permissions - we want to fail fast*/
-    FILE * handle = fopen ( output_file_path.c_str (), "w+" );
+    FILE * handle = fopen ( output_file_path.c_str (), "wb+" );
     if ( handle == NULL )
     {
         std::cout << "incapable of opening file in this location " + output_file_path << std::endl;
@@ -199,6 +200,37 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     return output_file_path;
 }
 
+inline void deserialize_and_merge_file ( const std::string& path, std::vector<rank> distances, int nearest_neighbors )
+{
+    /* open that file thing*/
+    FILE * handle = fopen ( path.c_str(), "rb" );
+    if ( handle == NULL )
+    {
+        std::cout << "failed to open partial result " << path << std::endl;
+        return;
+    }
+    /* read how many ranks are contained */
+    int how_many_rankings = 0;
+    fread ( &how_many_rankings, sizeof ( int ), 1, handle );
+
+    /* allocate a vector to read these suckers into*/
+    std::vector<rank> rankings ( how_many_rankings );
+    fread ( &rankings[ 0 ], sizeof ( rank ), how_many_rankings, handle );
+
+    /* merge them into the distances*/
+    for ( int i = 0; i < how_many_rankings; ++i )
+    {
+        auto j = distances.rbegin();
+        if ( distances.size () < nearest_neighbors ) distances.insert ( distances.end (), rankings[ i ] );
+        else if( rankings[ i ] < *j ) *j = rankings[ i ];
+    }
+    /* resort the distances */
+    std::sort ( distances.begin (), distances.end () );
+
+    fclose ( handle );
+    /* clean up after ourselves */
+    boost::filesystem::remove ( path );
+}
 
 int main ( int argc, char* argv[] )
 {
@@ -267,12 +299,17 @@ int main ( int argc, char* argv[] )
             if ( path == "" ) continue;
             output_file_paths.push_back ( rank_file ( path, search_vector, nearest_neighbors) );
         }
-        package_size = output_file_paths.size ();
+
+        /* packaging things to send out */
+        std::string output_buffer = boost::join ( output_file_paths, "\n" );
+        package_size = output_buffer.size ();
 
         /* send back number of file names included */
         MPI_Send ( &package_size, 1, MPI_INT32_T, 0, TAG_STRINGSIZE, MPI_COMM_WORLD );
 
         /* send back output file names */
+        MPI_Send ( &output_buffer[0], package_size, MPI_CHAR, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        
         std::cout << "child " << id << " sending back result" << std::endl;
     }
 
@@ -282,11 +319,36 @@ int main ( int argc, char* argv[] )
     /* gather */
     if ( id == 0 )
     {
-        int rec = 0;
+        std::vector<std::string> partial_result_files;
         for ( int i = 0; i < procs; ++i )
         {
+            int rec = 0;
+            std::vector<std::string> some_partial_result_files;
+            
+            /* master receive */
             MPI_Recv ( &rec, 1, MPI_INT32_T, i, TAG_STRINGSIZE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-            std::cout << "received " << rec << std::endl;
+            std::string incoming_buffer ( rec, '\0' );
+            MPI_Recv ( &incoming_buffer[ 0 ], rec, MPI_CHAR, i, TAG_COMPLETE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+
+            /* get the file names */
+            boost::split ( some_partial_result_files, incoming_buffer, boost::is_any_of ( "\n" ) );
+            
+            /* append them to the master list */
+            partial_result_files.insert ( partial_result_files.end (), some_partial_result_files.begin (), some_partial_result_files.end () );
+            
+            std::cout << "received " << rec << " more parts" <<std::endl;
+        }
+
+        /* this may not be necessary, but it ensures that we wait for everything before continuing - its a double check */
+        MPI_Barrier ( MPI_COMM_WORLD );
+
+        /* perform a swell & cut strategy 
+        swell up big, then we cut out our nearest neighbors*/
+        std::vector<rank> distances;
+        for ( auto presult_path : partial_result_files )
+        {
+            /* merge the file into distances */
+            deserialize_and_merge_file ( presult_path, distances, nearest_neighbors );
         }
 
         /* print report */
