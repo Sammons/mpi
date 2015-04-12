@@ -1,5 +1,15 @@
 # Created by https://www.gitignore.io
-
+Makefile
+config.guess
+config.hpp
+config.hpp.in
+config.status
+config.sub
+libtool
+ltmain.sh
+src/.deps/
+src/.main.cpp.swp
+src/Makefile
 ### C++ ###
 # Compiled Object files
 *.slo
