@@ -1,4 +1,3 @@
-
 #include <mpi.h>
 #include <cstdlib>
 #include <chrono>
@@ -7,10 +6,31 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <functional>
+#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 #define TAG_INITIAL_TASK 0
 #define TAG_COMPLETE 1
+
+
+
+/* maps strings into a container of integer types*/
+template<class o, int total_count, int start_index, int this_count>
+struct convert
+{
+    inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output )
+    {
+        output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
+        convert<o, total_count, start_index, this_count - 1>.loop_map_strings_to_ints ( input, output );
+    }
+
+};
+/* zero specifier */
+template<class o, int total_count, int start_index>
+struct convert<o, total_count, start_index, 0> { inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output ) {} };
+
 
 template <int size>
 struct image_vector
@@ -18,6 +38,7 @@ struct image_vector
     /* frankly, we don't need to track anything else in this lab */
     int image_id;
     std::array<short, size> data;
+
 };
 
 template <int size>
@@ -34,8 +55,19 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
     while ( stream.good () )
     {
         getline ( stream, line );
-        split
-    }
+        
+        /* shatter the line */
+        std::array<std::string, size + 7 /* meta data */ + 4 /* empty spaces */> tokens;
+        boost::split ( tokens, line, boost::is_any_of ( ",\"{}" ) );
+
+        /* populate vector */
+        image_vector<size> next_vector;
+        convert<int, size, 9, size> (tokens, next_vector.data);
+        next_vector.image_id = tokens[ 0 ];
+
+        /* save the vector */
+        output_set.push_back ( next_vector );
+     }
     stream.close ();
     return output_set;
 }
@@ -102,4 +134,3 @@ int main ( int argc, char* argv[] )
     MPI_Finalize ();
     return 0;
 }
-
