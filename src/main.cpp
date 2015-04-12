@@ -138,7 +138,7 @@ int main ( int argc, char* argv[] )
     if ( id == 0 )
     {
         /* get files to be delegated */
-        auto files = get_file_names_in_dir ( argv[ 2 ] );
+        auto files = get_file_names_in_dir ( argv[ 1 ] );
 
         int buffer[] = { 1, 2, 3, 4 };
         std::cout << "master issuing broadcast" << std::endl;
