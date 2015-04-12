@@ -121,6 +121,39 @@ image_vector<size> get_search_image_vector ( int which )
     return v;
 }
 
+struct rank
+{
+    float distance;
+    int image_id;
+};
+
+inline std::string generate_output_file_name ( const std::string& seed, int tries = 0 )
+{
+    const std::string output = seed + "_output_" + std::to_string(tries);
+    if ( boost::filesystem::exists ( output ) )
+        return generate_output_file_name ( seed, tries + 1 );
+    return output;
+}
+
+/* stores results in a file, only returns new filename */
+template<int size>
+std::string rank_file ( const std::string& filename, const image_vector<size>& search_vector )
+{
+    /* determine what the path we will write to is */
+    const std::string output_file_path = generate_output_file_name ( filename );
+
+    /* create the file, in case we do not have permissions - we want to fail fast*/
+    auto file = boost::filesystem::open ( output_file_path );
+
+    /* SERIOUS assumption here!!! that we are delegating properly, e.g. the file can fit into memory 
+    but this really isn't that serious, considering that we can always just split the files up into
+    smaller pieces */
+    auto vectors_to_rank = read_file ( filename );
+
+    boost::filesystem::close ( file );
+}
+
+
 int main ( int argc, char* argv[] )
 {
     MPI_Init ( &argc, &argv );
@@ -131,8 +164,8 @@ int main ( int argc, char* argv[] )
         MPI_Finalize ();
         return 0;
     }
-    constexpr int vector_sizes = 128;
-    const auto search_vector = get_search_image_vector<vector_sizes> ( atoi ( argv[ 2 ] ) );
+   // constexpr int vector_sizes = 128;
+    const auto search_vector = get_search_image_vector<128> ( atoi ( argv[ 2 ] ) );
     /* fun information about who "I" am here*/
     char hostname[ 255 ]; int len;
     int id, procs;
