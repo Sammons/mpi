@@ -200,7 +200,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     return output_file_path;
 }
 
-inline void deserialize_and_merge_file ( const std::string& path, std::vector<rank> distances, int nearest_neighbors )
+inline void deserialize_and_merge_file ( const std::string& path, std::vector<rank>& distances, int nearest_neighbors )
 {
     /* open that file thing*/
     FILE * handle = fopen ( path.c_str(), "rb" );
@@ -229,7 +229,7 @@ inline void deserialize_and_merge_file ( const std::string& path, std::vector<ra
 
     fclose ( handle );
     /* clean up after ourselves */
-    boost::filesystem::remove ( path );
+    //boost::filesystem::remove ( path );
 }
 
 int main ( int argc, char* argv[] )
