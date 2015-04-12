@@ -17,7 +17,7 @@
 
 #define TAG_FILENAME 0
 #define TAG_COMPLETE 1
-
+#define MAX_FILE_NAME_CHARS 4096
 
 template <int size>
 struct image_vector
@@ -139,29 +139,30 @@ int main ( int argc, char* argv[] )
         std::cout << "master issuing broadcast" << std::endl;
         for ( int i = 0; i < procs; ++i )
         {
-            const int my_paths_start = get_start_for_me ( i, procs, files.size () );
-            const int my_paths_end = get_end_for_me ( i, procs, files.size () );
+            /* determine how many files to delegate to child */
             std::string my_joined_paths;
-            for (int j = i; j < files.size (); j += procs ) my_joined_paths += files[ j ] + "\n";
-            std::cout << "my files:" << i << ":  " << my_joined_paths;
-            MPI_Send ( buffer, 4, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
+            for (int j = i; j < files.size (); j += procs ) 
+                my_joined_paths += files[ j ] + "\n";
+
+            std::cout << "files for:" << i << ":\n" << my_joined_paths;
+            if ( my_joined_paths.size () > MAX_FILE_NAME_CHARS )
+                throw "too many files being delegated!!!!";
+            MPI_Send ( &my_joined_paths[0], my_joined_paths.size(), MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
             std::cout << "master sent initial task to " << i << std::endl;
         }
     }
 
     {
         /* child receives */
-        int * local_receive_buffer = ( int* )malloc ( 4 * sizeof ( int ) );
-        MPI_Recv ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+        char tmp_buffer[ MAX_FILE_NAME_CHARS ] { 0 };
+        MPI_Recv ( tmp_buffer, MAX_FILE_NAME_CHARS, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::cout << "child " << id << " receiving task" << std::endl;
-
+        std::cout << "received:\n" << std::string ( tmp_buffer ) << std::endl;
         std::this_thread::sleep_for ( std::chrono::milliseconds ( id * 1000 ) );
         /* perform work */
         /* for now, just testing, does nothing */
-        MPI_Send ( local_receive_buffer, 4, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
+        MPI_Send ( tmp_buffer, MAX_FILE_NAME_CHARS, MPI_INT32_T, 0, TAG_COMPLETE, MPI_COMM_WORLD );
         std::cout << "child " << id << " sending back result" << std::endl;
-        /* child cleanup */
-        free ( local_receive_buffer );
     }
 
     /* wait for everyone to turn in their work */
