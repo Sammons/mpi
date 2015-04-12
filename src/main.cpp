@@ -75,7 +75,7 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
 int main ( int argc, char* argv[] )
 {
 
-    auto vectors = read_file("/cluster/content/hpc/dev_data/data_aa");
+    auto vectors = read_file(std::string("/cluster/content/hpc/dev_data/data_aa"));
     std::cout << vectors[0].image_id << " image id" << std::endl;
     for (int i = 0; i < 128; i++)
         std::cout << "\t" << vectors[0].data[i] << std::endl;
