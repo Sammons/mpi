@@ -1,3 +1,65 @@
+/*
+Author: Ben Sammons
+Motivation: High Performance Computing Course @ Mizzou
+
+Algorithm:
+
+let N be the number of nodes
+
+1) generate single vector to search against
+
+2) read data directory recursively to get all data files
+
+3) divide up data file names into N groups.
+
+4) send every node a collection of file names
+
+5) receive the file names, and for each file represented
+
+    5.1) read every entry into a vector structure, 
+         only tracking image_id, and the 128 element vector
+
+    5.2) rank every vector against the search vector,
+         using manhattan distance, providing a collection of rankings
+
+    5.3) associate every ranking with its image_id in a map, deduplicating the image_ids.
+         for any image_id, the associated distance is the smallest distance found for
+         that image.
+
+    5.4) convert the map back into a vector of ranks, and sort by distance
+
+    5.3) serialize ALL of the collection of rankings into a new partial result file.
+          
+          Note: this is significant, because this dislocates the algorithm in such a way
+                that it is not more efficient when fewer / more nearest neighbors are 
+                specified. no matter what, it always serializes the sorted ranks for
+                every vector in the data file. This allows the query to be totally correct
+                in comparison to previous homeworks, where my algorithm could be wrong
+                given a small pool of images.
+
+    5.4) return the name of the file saved to
+
+6) aggregate the new file names, and send them back to the master node to indicate completion
+
+7) all children are completed, now only the master has work to do
+
+8) aggregate all of the new file names
+
+9) for each of these new files, read the rankings into a "global" map. global in that all of the rankings
+    from all of the partial results will end up in this map. again, this acts as a deduplication, where
+    the image_id will only be associated with the shortest distance available. it also decreases the 
+    "weight" of the computation in the long run, since more unique images will have to be included
+    for this set to become significantly large. for comparison the 830k file only has a little over
+    1,000 unique image_ids. for that data set this map will only have that same amount of entries.
+
+10) convert the elements of the map back into a vector, and sort it.
+
+11) truncate the vector to the number of nearest neighbors requested.
+
+12) report
+*/
+
+
 #include <mpi.h>
 #include <cstdlib>
 #include <cstdio>
@@ -96,23 +158,6 @@ inline std::vector<std::string> get_file_names_in_dir ( std::string dirname )
     return file_names;
 }
 
-inline int get_start_for_me ( const int& me, const int& us, const int& size )
-{
-    const int divides_to = size / us;
-    if ( divides_to == 0 ) return 0;
-
-    return me * divides_to;
-}
-
-inline int get_end_for_me ( const int& me, const int& us, const int& size )
-{
-    const int divides_to = size / us;
-    if ( divides_to == 0 && me != 0) return 0;
-    else return size;
-
-    if ( me == us - 1 ) return size;
-    else return ( me + 1 )* divides_to;
-}
 template<int size>
 image_vector<size> get_search_image_vector ( int which )
 {
@@ -161,7 +206,7 @@ struct ranker
     }
     inline static float rank_vectors ( const image_vector<size>& a, const image_vector<size>& b )
     {
-        return manhattanDissimilarity<size> ( a.data, b.data );
+        return ( float )( ranker<size, c>::sum_distances ( a, b ) ) / ( float )( size );
     }
 };
 
