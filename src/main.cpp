@@ -5,6 +5,7 @@
 #include <thread>
 #include <array>
 #include <vector>
+#include <set>
 #include <map>
 #include <string>
 #include <iostream>
@@ -179,22 +180,38 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     smaller pieces */
     const std::vector<image_vector<size>> vectors_to_rank = read_file<size> ( filename );
     const int num_rankings = vectors_to_rank.size ();
-    std::vector<rank> rankings ( num_rankings );
-    for ( register int i = 0; i < num_rankings; ++i )
+    std::vector<rank> rankings;
+    std::map<float, std::set<int>> rank_set;
+    for (int i = 0; i < num_rankings; ++i )
     {
-        /* calculate distances */
-        rankings[ i ].distance = ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector );
-        rankings[ i ].image_id = vectors_to_rank[ i ].image_id;
+        /* calculate distances, and in a unique fashion insert into a map */
+        rank_set[ 
+            ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector )
+        ].emplace ( vectors_to_rank[ i ].image_id );
     }
 
+    for ( int j = 0, auto iter = rank_set.begin (); iter != rank_set.end (); ++iter )
+    {
+        for ( auto inner_iter = iter->second.begin (); inner_iter != iter->second.end (); ++inner_iter )
+        {
+            rank r;
+            r.distance = iter->first;
+            r.image_id = inner_iter->first;
+            rankings.push_back ( r );
+            ++j;
+        }
+    }
+
+    int output_size = ( nearest_neighbors > rankings.size () ? rankings.size () : nearest_neighbors );
+
     /* breadcrumb for deserialization, how many there are */
-    fwrite ( &nearest_neighbors, sizeof ( int ), 1, handle );
+    fwrite ( &output_size, sizeof ( int ), 1, handle );
 
     /* sort */
     std::sort ( rankings.begin (), rankings.end () );
 
     /* serialize results */
-    fwrite ( &rankings[ 0 ], sizeof ( rank ), nearest_neighbors, handle );
+    fwrite ( &rankings[ 0 ], sizeof ( rank ), output_size, handle );
 
     fclose ( handle );
     return output_file_path;
