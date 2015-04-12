@@ -9,6 +9,7 @@
 #include <functional>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 
 #define TAG_INITIAL_TASK 0
@@ -70,6 +71,20 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
      }
     stream.close ();
     return output_set;
+}
+
+std::vector<std::string> get_file_names_in_dir( const std::string& dir_path)
+{
+    std::vector < std::string > paths;
+    boost::filesystem::recursive_directory_iterator end, dir ( dir_path );
+    while ( dir != end )
+    {
+        if ( boost::filesystem::is_regular_file ( dir->path () ) )
+        {
+            paths.push_back ( dir->path().generic_string() );
+        }
+    }
+    return paths;
 }
 
 int main ( int argc, char* argv[] )
