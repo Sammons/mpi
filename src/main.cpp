@@ -264,6 +264,7 @@ int main ( int argc, char* argv[] )
         /* process each file independently */
         for ( auto path : file_paths )
         {
+            if ( path == "" ) continue;
             output_file_paths.push_back ( rank_file ( path, search_vector, nearest_neighbors) );
         }
         package_size = output_file_paths.size ();
