@@ -21,7 +21,7 @@
 template<class o, int total_count, int start_index, int this_count>
 struct convert
 {
-    inline static void loop_map_strings_to_ints ( std::array<std::string, total_count>& input, std::array<o, total_count>& output )
+    inline static void loop_map_strings_to_ints ( std::array<std::string, total_count> input, std::array<o, total_count>& output )
     {
         output[ this_count - 1 ] = atoi ( input[ start_index + (this_count - 1) ].c_str() );
         convert<o, total_count, start_index, this_count - 1>::loop_map_strings_to_ints ( input, output );
@@ -63,7 +63,7 @@ std::vector<image_vector<size>> read_file ( const std::string filename )
         /* populate vector */
         image_vector<size> next_vector;
         convert<int, size, 9, size>::loop_map_strings_to_ints (tokens, next_vector.data);
-        next_vector.image_id = tokens[ 0 ];
+        next_vector.image_id = atoi( tokens[ 0 ] );
 
         /* save the vector */
         output_set.push_back ( next_vector );
