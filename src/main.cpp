@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <ifstream>
 #include <functional>
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
@@ -40,36 +41,36 @@ struct image_vector
     std::array<short, size> data;
 };
 
-// template <int size>
-// std::vector<image_vector<size>> read_file ( const std::string filename )
-// {
-//     std::string line;
-//     std::ifstream stream = std::ifstream ( filename );
-//     std::vector<image_vector<size>> output_set;
-//     if ( !stream.is_open () )
-//     {
-//         std::cout << "unable to read file " << filename << std::endl;
-//         return output_set;
-//     }
-//     while ( stream.good () )
-//     {
-//         getline ( stream, line );
+template <int size>
+std::vector<image_vector<size>> read_file ( const std::string filename )
+{
+    std::string line;
+    std::ifstream stream = std::ifstream ( filename );
+    std::vector<image_vector<size>> output_set;
+    if ( !stream.is_open () )
+    {
+        std::cout << "unable to read file " << filename << std::endl;
+        return output_set;
+    }
+    while ( stream.good () )
+    {
+        getline ( stream, line );
         
-//         /* shatter the line */
-//         std::array<std::string, size + 7 /* meta data */ + 4 /* empty spaces */> tokens;
-//         boost::split ( tokens, line, boost::is_any_of ( ",\"{}" ) );
+        /* shatter the line */
+        std::array<std::string, size + 7 /* meta data */ + 4 /* empty spaces */> tokens;
+        boost::split ( tokens, line, boost::is_any_of ( ",\"{}" ) );
 
-//         /* populate vector */
-//         image_vector<size> next_vector;
-//         convert<int, size, 9, size> (tokens, next_vector.data);
-//         next_vector.image_id = tokens[ 0 ];
+        /* populate vector */
+        image_vector<size> next_vector;
+        convert<int, size, 9, size> (tokens, next_vector.data);
+        next_vector.image_id = tokens[ 0 ];
 
-//         /* save the vector */
-//         output_set.push_back ( next_vector );
-//      }
-//     stream.close ();
-//     return output_set;
-// }
+        /* save the vector */
+        output_set.push_back ( next_vector );
+     }
+    stream.close ();
+    return output_set;
+}
 
 int main ( int argc, char* argv[] )
 {
