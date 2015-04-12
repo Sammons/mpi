@@ -118,7 +118,8 @@ inline std::string join_paths_by_newline ( const std::vector<std::string>& paths
 
 int main ( int argc, char* argv[] )
 {
-    std::cout << "searching for files in" << std::string ( argv[ 2 ] ) << std::endl;
+    std::cout << "searching for files in" << std::string ( argv[ 1 ] ) << std::endl;
+    fflush ( stdout );
     auto a = get_file_names_in_dir ( argv[2] );
     std::cout << "found files" << a.size() << std::endl;
     //MPI_Init ( &argc, &argv );
