@@ -148,7 +148,7 @@ int main ( int argc, char* argv[] )
             const int my_paths_end = get_end_for_me ( i, procs, files.size () );
             const std::string my_joined_paths = join_paths_by_newline ( files, my_paths_start, my_paths_end );
             std::cout << "my files:" << i << ":  " << my_joined_paths;
-            //MPI_Send ( buffer, 4, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
+            MPI_Send ( buffer, 4, MPI_CHAR, i, TAG_FILENAME, MPI_COMM_WORLD );
             std::cout << "master sent initial task to " << i << std::endl;
         }
     }
