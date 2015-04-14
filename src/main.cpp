@@ -230,6 +230,7 @@ std::string rank_file ( const std::string& filename, const image_vector<size>& s
     {
         /* calculate distances, and insert into map*/
         const float dist = ranker<size, size>::rank_vectors ( vectors_to_rank[ i ], search_vector );
+	//std::cout << dist << std::endl;
         const int id = vectors_to_rank[ i ].image_id;
         const auto existing = u_set.find ( id );
         if ( existing != u_set.end () )
@@ -285,9 +286,10 @@ inline void deserialize_and_merge_file ( const std::string& path, std::map<int, 
     /* merge them into the distances*/
     for ( int i = 0; i < how_many_rankings; ++i )
     {
+	//std::cout << rankings[i].distance << std::endl;
         if ( distances.find ( rankings[ i ].image_id ) != distances.end () )
         {
-            if ( rankings[ i ].distance < distances[ rankings[ i ].image_id ] )
+            if ( rankings[ i ].distance < rankings[ i ].image_id )
                 distances[ rankings[ i ].image_id ] = rankings[ i ].distance;
         }
         else
