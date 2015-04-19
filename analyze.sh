@@ -8,21 +8,29 @@ if [ $GCC_48 == "1" ]; then
 # purge
 	git clean -xdf
 
-# #reset (murders your changes)
+# reset (murders your changes)
 	echo "stashing changes"
 	git stash
 	echo "checking out master"
 	git checkout master
 	git reset origin --hard
 
-# #get latest
+# get latest
 	echo "getting latest changes from master"
 	git pull https://github.com/Sammons/mpi master
 
-# #load binaries
+# load binaries
 	echo "loading in mpi"
 	module load openmpi-x86_64
 
+# build
+	echo "building"
+	autoreconf -ivf
+	./configure
+	make
+
+	echo "done building"
+	
 else
 
 	echo "please run using hpc bash, or at least using gcc 4.8"
