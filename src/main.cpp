@@ -458,7 +458,7 @@ int main ( int argc, char* argv[] )
 		auto pwd = boost::filesystem::path( boost::filesystem::current_path () );
 		std::cout << "reported results to " << pwd << " in file bds8c7_results.txt" << std::endl;
 		{
-			auto stream = std::ofstream ( "bds8c7_results.txt" ) );
+			std::ofstream stream ( "bds8c7_results.txt" );
 			stream << search_vector.as_string () << std::endl;
 			stream << "search-time:" << get_time ( "search" ) << std::endl;
 			stream.close ();
