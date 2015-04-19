@@ -42,12 +42,12 @@ if [ $GCC_48 == "1" ]; then
 	echo "1) running 3 times per P, with a different vector each time "
 	echo "   where P is the number of threads, and ranges from "
 	echo "   1 to 16. we search for the 1500 nearest neighbors."
-	VECT_SEED=0
-	N=1500
-	for i in `seq 1 16`; do
-		mpirun -n $i src/mpi /cluster/content/hpc/distributed_data/ $VECT_SEED $N >& run_$i.txt
-	done
-
+	VECT_SEED=0;
+	N=1500;
+	for i in `seq 1 16`; 
+	do
+		mpirun -n $i src/mpi /cluster/content/hpc/distributed_data/ $VECT_SEED $N >& run_$i.txt;
+	done;
 else
 
 	echo "please run using hpc bash, or at least using gcc 4.8"

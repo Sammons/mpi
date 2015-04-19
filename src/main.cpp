@@ -473,7 +473,7 @@ int main ( int argc, char* argv[] )
 	}
 	else
 	{
-		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
+		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << std::endl;
 	}
     MPI_Finalize ();
     return 0;
