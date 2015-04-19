@@ -91,6 +91,14 @@ struct image_vector
     /* frankly, we don't need to track anything else in this lab */
     int image_id;
     std::array<int, size> data;
+	std::string as_string () const
+	{
+		std::string me = "{\n\timage_id : "+std::to_string(image_id) + ",\n\tdata :[\n";
+		for ( int i = 0; i < size - 1; ++i )
+			me += "\t\t" + std::to_string ( data[ i ] ) + ",\n";
+		me += "\t\t" + std::to_string ( data[ size - 1 ] ) + "\n\t]\n }";
+		return me;
+	}
 };
 
 template<class t, int size, int start, int cur>
@@ -303,10 +311,27 @@ inline void deserialize_and_merge_file ( const std::string& path, std::map<int, 
     boost::filesystem::remove ( path );
 }
 
+static std::map<std::string, std::chrono::time_point<std::chrono::high_resolution_clock>> time_map {};
+
+inline void start ( std::string timer_name )
+{
+	time_map[ timer_name ] = std::chrono::high_resolution_clock::now ();
+}
+
+inline double get_time ( std::string timer_name )
+{
+	auto start = time_map[ timer_name ];
+	auto stop = std::chrono::high_resolution_clock::now ();
+	auto duration = std::chrono::duration_cast<std::chrono::duration<double> >( stop - start );
+	return duration.count ();
+}
+
 int main ( int argc, char* argv[] )
 {
-    MPI_Init ( &argc, &argv );
 
+    MPI_Init ( &argc, &argv );
+	start ( "every child time" );
+	start ( "search" );
     if ( argc < 4 )
     {
         std::cout << "not enough args, usage mpirun <data directory> <search vector steps> <nearest neighbors>" << std::endl;
@@ -430,16 +455,23 @@ int main ( int argc, char* argv[] )
 
         /* truncate result to nearest neighbors */
         result.resize ( nearest_neighbors );
-
+		auto pwd = boost::filesystem::path( boost::filesystem::current_path () );
+		std::cout << "reported results to " << pwd << " in file bds8c7_results.txt" << std::endl;
+		{
+			auto stream = std::ofstream ( "bds8c7_results.txt" ) );
+			stream << search_vector.as_string () << std::endl;
+			stream << "search-time:" << get_time ( "search" ) << std::endl;
+			stream.close ();
+		}
         /* print report */
-        std::cout << "NEAREST NEIGHBORS" << std::endl;
-        for ( int i = 0; i < result.size (); ++i )
+        //std::cout << "NEAREST NEIGHBORS" << std::endl;
+        /*for ( int i = 0; i < result.size (); ++i )
         {
             std::cout << i << "\t" << result[ i ].image_id << ": " << result[ i ].distance << std::endl;
-        }
-        std::cout << "complete" << std::endl;
-    }
-
+        }*/
+        //std::cout << "complete" << std::endl;
+	}
+	std::cout << "node-" << id << ":run-time:" << get_time ( "every child time" );
     MPI_Finalize ();
     return 0;
 }
