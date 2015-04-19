@@ -411,6 +411,7 @@ int main ( int argc, char* argv[] )
     /* gather */
     if ( id == 0 )
     {
+		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
         std::vector<std::string> partial_result_files;
         for ( int i = 0; i < procs; ++i )
         {
@@ -470,7 +471,10 @@ int main ( int argc, char* argv[] )
         }*/
         //std::cout << "complete" << std::endl;
 	}
-	std::cout << "node-" << id << ":run-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
+	else
+	{
+		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
+	}
     MPI_Finalize ();
     return 0;
 }
