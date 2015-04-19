@@ -25,7 +25,7 @@ do
 	# perform run
 	for j in `seq 1 3`;
 	do
-		echo $j
+		echo $j;
 		mpirun -n $i src/mpi /cluster/content/hpc/distributed_data/ $j $N >& run_$i.txt;
 		cat run_$i.txt | grep -Eo ":[0-9].*$" | sed s/seconds// | grep -Eo "[0-9\.\e\-\+]*\b" | awk '{s+=$1} END {print s}' >> serial_search_$i.txt;
 		cat bds8c7_results.txt | grep search-time | sed s/search-time:// | sed s/seconds// >> parallel_search_$i.txt;
