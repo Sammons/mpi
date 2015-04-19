@@ -1,27 +1,3 @@
-#!bin/bash
-
-GCC_48=$(g++ --version | sed s/4.8.2/CORRECT_COMPILER/ | grep CORRECT_COMPILER | wc --lines)
-
-if [ $GCC_48 == "1" ]; then
-
-	echo "purging stray files"
-# purge
-	git clean -xdf
-
-# reset (murders your changes)
-	echo "stashing changes"
-	git stash
-	echo "checking out master"
-	git checkout master
-	git reset origin --hard
-
-# get latest
-	echo "getting latest changes from master"
-	git pull https://github.com/Sammons/mpi master
-
-# load binaries
-	echo "loading in mpi"
-	module load openmpi-x86_64
 
 # build
 	echo "building"
