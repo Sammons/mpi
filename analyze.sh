@@ -12,12 +12,12 @@ if [ $GCC_48 == "1" ]; then
 	echo "stashing changes"
 	git stash
 	echo "checking out master"
-	get checkout master
+	git checkout master
 	git reset origin --hard
 
 # #get latest
 	echo "getting latest changes from master"
-	git pull https://github.com/Sammons/mpi
+	git pull https://github.com/Sammons/mpi master
 
 # #load binaries
 	echo "loading in mpi"
