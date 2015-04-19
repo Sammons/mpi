@@ -156,7 +156,7 @@ inline std::vector<std::string> get_file_names_in_dir ( std::string dirname )
     {
         if ( boost::filesystem::is_regular_file ( *dir ) )
         {
-            std::cout << boost::filesystem::complete ( dir->path () ).string () << std::endl;
+            //std::cout << boost::filesystem::complete ( dir->path () ).string () << std::endl;
             file_names.push_back ( boost::filesystem::complete( dir->path() ).string() );
         }
         dir++;
@@ -355,7 +355,7 @@ int main ( int argc, char* argv[] )
         auto files = get_file_names_in_dir ( argv[ 1 ] );
 
         int buffer[] = { 1, 2, 3, 4 };
-        std::cout << "master issuing broadcast" << std::endl;
+        //std::cout << "master issuing broadcast" << std::endl;
         for ( int i = 0; i < procs; ++i )
         {
             /* determine how many files to delegate to child */
@@ -375,8 +375,8 @@ int main ( int argc, char* argv[] )
         MPI_Recv ( &package_size, 1, MPI_INT32_T, 0, TAG_STRINGSIZE, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
         std::string receive_buffer ( package_size, '\0' );
         MPI_Recv ( &receive_buffer[0], package_size, MPI_CHAR, 0, TAG_FILENAME, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
-        std::cout << "child " << id << " receiving task" << std::endl;
-        std::cout << "received:\n" << receive_buffer << std::endl;
+        //std::cout << "child " << id << " receiving task" << std::endl;
+        //std::cout << "received:\n" << receive_buffer << std::endl;
 
         /* split apart file names*/
         std::vector<std::string> file_paths;
@@ -402,7 +402,7 @@ int main ( int argc, char* argv[] )
         /* send back output file names */
         MPI_Send ( &output_buffer[0], package_size, MPI_CHAR, 0, TAG_COMPLETE, MPI_COMM_WORLD );
         
-        std::cout << "child " << id << " completed" << std::endl;
+        //std::cout << "child " << id << " completed" << std::endl;
     }
 
     /* wait for everyone to turn in their work */
@@ -428,7 +428,6 @@ int main ( int argc, char* argv[] )
             /* append them to the master list */
             partial_result_files.insert ( partial_result_files.end (), some_partial_result_files.begin (), some_partial_result_files.end () );
         }
-        std::cout << "master has finished receiving all partial results" << std::endl;
 
         /* dedup + extract data */
         std::map<int, float> distances;
@@ -460,7 +459,7 @@ int main ( int argc, char* argv[] )
 		{
 			std::ofstream stream ( "bds8c7_results.txt" );
 			stream << search_vector.as_string () << std::endl;
-			stream << "search-time:" << get_time ( "search" ) << std::endl;
+			stream << "search-time:" << get_time ( "search" ) << " seconds" << std::endl;
 			stream.close ();
 		}
         /* print report */
@@ -471,7 +470,7 @@ int main ( int argc, char* argv[] )
         }*/
         //std::cout << "complete" << std::endl;
 	}
-	std::cout << "node-" << id << ":run-time:" << get_time ( "every child time" );
+	std::cout << "node-" << id << ":run-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
     MPI_Finalize ();
     return 0;
 }
