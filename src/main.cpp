@@ -411,7 +411,6 @@ int main ( int argc, char* argv[] )
     /* gather */
     if ( id == 0 )
     {
-		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << "seconds " << std::endl;
         std::vector<std::string> partial_result_files;
         for ( int i = 0; i < procs; ++i )
         {
@@ -456,13 +455,14 @@ int main ( int argc, char* argv[] )
         /* truncate result to nearest neighbors */
         result.resize ( nearest_neighbors );
 		auto pwd = boost::filesystem::path( boost::filesystem::current_path () );
-		std::cout << "reported results to " << pwd << " in file bds8c7_results.txt" << std::endl;
 		{
 			std::ofstream stream ( "bds8c7_results.txt" );
 			stream << search_vector.as_string () << std::endl;
 			stream << "search-time:" << get_time ( "search" ) << " seconds" << std::endl;
 			stream.close ();
 		}
+		std::cout << "node-" << id << ":search-time:" << get_time ( "every child time" ) << std::endl;
+		std::cout << "reported results to " << pwd << " in file bds8c7_results.txt" << std::endl;
         /* print report */
         //std::cout << "NEAREST NEIGHBORS" << std::endl;
         /*for ( int i = 0; i < result.size (); ++i )
