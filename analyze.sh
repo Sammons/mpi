@@ -5,6 +5,7 @@ autoreconf -ivf
 ./configure
 make
 
+module load openmpi-x86_64
 echo "done building"
 
 echo "------------------------------------------"
