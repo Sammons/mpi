@@ -2,7 +2,7 @@
 
 GCC_48=$(g++ --version | sed s/4.8.2/CORRECT_COMPILER/ | grep CORRECT_COMPILER | wc --lines)
 
-if [ GCC_48 == 1 ]; then
+if [ $GCC_48 == "1" ]; then
 
 	echo "purging stray files"
 # purge
