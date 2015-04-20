@@ -78,7 +78,7 @@ do
 done;
 
 SAMPLE_COUNT=10;
-for i in 100 500 1000 1500;
+for i in 100;
 do
 	echo $i;
 	cat serial_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_serial.txt;
