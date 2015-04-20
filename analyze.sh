@@ -47,7 +47,10 @@ do
 done;
 paste l_p_average_serial.txt l_p_average_parallel.txt > l_p_averages_together.txt;
 cat l_p_averages_together.txt | awk '{ print $1/$2 }' > l_p_average_parallel_speedup.txt;
-
+paste l_p_count.txt l_p_averages_together.txt > l_p_basic.data;
+paste l_p_count.txt l_p_average_parallel_speedup.txt > l_p_speedup.data;
+gnuplot < local_plot_parallel_and_serial_times_over_p.gnu;
+gnuplot < local_plot_speedup_over_p.gnu;
 echo "----------DONE-----------";
 # wall-clock & serial : vs P
 
@@ -68,7 +71,7 @@ for i in 100 500 1000 1500;
 do
 	echo $i
 	# perform run
-	for j in `seq 1 10`; # vector seed
+	for j in `seq 1 20`; # vector seed
 	do
 		echo $j &&
 		mpirun -n $P src/mpi /cluster/content/hpc/distributed_data/ $j $i >& run_$i.txt &&
@@ -91,8 +94,8 @@ paste l_n_average_serial.txt l_n_average_parallel.txt > l_n_averages_together.tx
 paste l_n_count.txt l_n_averages_together.txt > l_n_basic.data;
 cat l_n_averages_together.txt | awk '{ print $1/$2 }' > l_n_average_parallel_speedup.txt;
 paste l_n_count.txt l_n_average_parallel_speedup.txt > l_n_speedup.data;
-gnuplot < plot_parallel_and_serial_times_over_p.gnu;
-gnuplot < plot_parallel_and_serial_times_over_n.gnu;
+gnuplot < local_plot_parallel_and_serial_times_over_n.gnu;
+gnuplot < local_plot_speedup_over_n.gnu;
 echo "--------DONE---------"
 # wall-clock & serial : vs N
 # ratio vs N
