@@ -60,6 +60,7 @@ echo "--------------------------------";
 # with P fixed at 8, 10 samples
 rm parallel_search*.txt;
 rm serial_search*.txt;
+rm l_n*.data
 P=8;
 # 500 1000 1500;
 for i in 100;
@@ -81,12 +82,14 @@ SAMPLE_COUNT=10;
 rm l_n_*.txt;
 for i in 100;
 do
-	echo $i;
+	echo $i >> l_n_count.txt;
 	cat serial_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_serial.txt;
 	cat parallel_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_parallel.txt;
 done;
 paste l_n_average_serial.txt l_n_average_parallel.txt > l_n_averages_together.txt;
+paste l_n_count.txt l_n_averages_together > l_n_basic.data;
 cat l_n_averages_together.txt | awk '{ print $1/$2 }' > l_n_average_parallel_speedup.txt;
+paste l_n_count.txt l_n_average_parallel_speedup > l_n_speedup.data;
 
 echo "--------DONE---------"
 # wall-clock & serial : vs N
