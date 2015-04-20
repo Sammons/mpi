@@ -1,9 +1,9 @@
 
 # build
 echo "building"
-autoreconf -ivf
-./configure
-make
+# autoreconf -ivf
+# ./configure
+# make
 
 module load openmpi-x86_64
 echo "done building"
