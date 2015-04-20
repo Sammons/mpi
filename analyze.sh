@@ -89,7 +89,7 @@ done;
 paste l_n_average_serial.txt l_n_average_parallel.txt > l_n_averages_together.txt;
 paste l_n_count.txt l_n_averages_together.txt > l_n_basic.data;
 cat l_n_averages_together.txt | awk '{ print $1/$2 }' > l_n_average_parallel_speedup.txt;
-paste l_n_count.txt l_n_average_parallel_speedup > l_n_speedup.data;
+paste l_n_count.txt l_n_average_parallel_speedup.txt > l_n_speedup.data;
 
 echo "--------DONE---------"
 # wall-clock & serial : vs N
