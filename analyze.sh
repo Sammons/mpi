@@ -78,6 +78,7 @@ do
 done;
 
 SAMPLE_COUNT=10;
+rm l_n_*.txt;
 for i in 100;
 do
 	echo $i;
