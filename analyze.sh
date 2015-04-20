@@ -63,7 +63,7 @@ rm serial_search*.txt;
 rm l_n*.data
 P=8;
 # 500 1000 1500;
-for i in 100;
+for i in 100 500 1000 1500;
 do
 	echo $i
 	# perform run
@@ -80,7 +80,7 @@ done;
 
 SAMPLE_COUNT=10;
 rm l_n_*.txt;
-for i in 100;
+for i in 100 500 1000 1500;
 do
 	echo $i >> l_n_count.txt;
 	cat serial_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_serial.txt;
