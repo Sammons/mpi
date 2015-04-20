@@ -85,7 +85,7 @@ do
 	cat serial_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_serial.txt;
 	cat parallel_search_$i.txt | awk '{s+=$1} END {print s}' | awk '{print $1/"'"$SAMPLE_COUNT"'"}' >> l_n_average_parallel.txt;
 done;
-paste l_n_average_serial.txt l_p_average_parallel.txt > l_n_averages_together.txt;
+paste l_n_average_serial.txt l_n_average_parallel.txt > l_n_averages_together.txt;
 cat l_n_averages_together.txt | awk '{ print $1/$2 }' > l_n_average_parallel_speedup.txt;
 
 echo "--------DONE---------"
